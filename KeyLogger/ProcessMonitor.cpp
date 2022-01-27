@@ -42,7 +42,8 @@ std::string ProcessMonitor::GetActiveWindowTitle()
     GetWindowThreadProcessId(hwnd, &dwProcId);
     std::string title = wnd_title;
     std::string path = GetProcessName(dwProcId);
-    return path + " | " + title;
+    // return path + " | " + title;
+    return path;
 }
 /// <summary>
 /// 

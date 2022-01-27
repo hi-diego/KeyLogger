@@ -6,13 +6,17 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <iterator>
 #include <tchar.h>
 #include <functional>
 #include <atlstr.h>
+#include <map>
 #include <locale>
 #include <codecvt>
 #include <psapi.h>
 #include <shlwapi.h>
+#include <sstream>
+#include <iomanip>
 #include <thread>
 #include <libloaderapi.h>
 #include "ProcessMonitor.h"
@@ -127,6 +131,37 @@ class KeyLogger {
 /// <summary>
 /// 
 /// </summary>
+/// <param name="x"></param>
+/// <param name="y"></param>
+void gotoxy(int x, int y) {
+    HANDLE hcon;
+    hcon = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD dwPos;
+    dwPos.X = x;
+    dwPos.Y = y;
+    SetConsoleCursorPosition(hcon, dwPos);
+}
+/// <summary>
+/// 
+/// </summary>
+/// <param name="x"></param>
+/// <param name="y"></param>
+void draw(std::map<std::string, int> apps)
+{
+    system("CLS");
+    for (auto const& [key, val] : apps)
+    {
+        // std::cout << key << " " << ((double) val) / 1000 << "s" << std::endl;
+        double sec = ((double)val) / 1000;
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(2) << sec;
+        std::string s = stream.str();
+        std::cout << key << ": " << s << "s " << std::string(val/60000, char(178))  << std::endl;
+    }
+}
+/// <summary>
+/// 
+/// </summary>
 /// <returns></returns>
 int main()
 {
@@ -136,13 +171,25 @@ int main()
     std::vector<std::string> words;
     std::string word = "";
     std::string activeWindow = "";
+    std::map<std::string, int> apps;
     // infinite loop each 200 ms
-    std::thread windowThread = Looper::Thread(200, true, [&activeWindow]() {
+    std::thread windowThread = Looper::Thread(100, true, [&activeWindow, &apps]() {
         // 
-        activeWindow = ProcessMonitor::OnWindowChange(activeWindow, [](std::string w) {
+        activeWindow = ProcessMonitor::OnWindowChange(activeWindow, [&apps](std::string w) {
+            // std::map<std::string, int>::iterator app = apps[w;
             // active window has been changed!!
-            std::cout << w << std::endl;
+            draw(apps);
+            //std::cout << w << std::endl;
         });
+        auto app = apps.find(activeWindow);
+        if (app == apps.end()) apps.insert({ activeWindow, 200 });
+        else {
+            int acc = app->second;
+            // std::cout << acc << std::endl;
+            apps.erase(activeWindow);
+            apps.insert({ activeWindow, (acc + 200) });
+        }
+        draw(apps);
     });
     // 
     std::thread keyloggerThread = Looper::Thread(50, true, [&word]() {
