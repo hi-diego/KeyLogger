@@ -14,11 +14,12 @@ std::string ProcessMonitor::GetProcessName(DWORD processID)
     // Get a handle to the process.
     HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
     // Get the process name.
-    if (hProcess == NULL) return CloseHandle(hProcess) ? "" : "";
-    HMODULE hMod;
-    DWORD cbNeeded;
-    if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
-        GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR));
+    if (hProcess != NULL) {
+        HMODULE hMod;
+        DWORD cbNeeded;
+        if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
+            GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR));
+    }
     CloseHandle(hProcess);
     std::wstring name = szProcessName;
     return std::string(name.begin(), name.end());

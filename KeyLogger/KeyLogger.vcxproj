@@ -140,7 +140,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Foo.cpp" />
     <ClCompile Include="KeyLogger.cpp" />
     <ClCompile Include="Looper.cpp" />
     <ClCompile Include="ProcessMonitor.cpp" />
@@ -149,7 +148,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Foo.h" />
     <ClInclude Include="Looper.h" />
     <ClInclude Include="ProcessMonitor.h" />
   </ItemGroup>

@@ -24,9 +24,6 @@
     <ClCompile Include="Looper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Foo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -36,9 +33,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Looper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Foo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

