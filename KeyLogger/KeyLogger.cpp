@@ -196,7 +196,7 @@ std::string GetActiveWindowTitle()
     /*HANDLE h = GetProcessHandleFromHwnd(hwnd);
     int pid = GetWindowProcessID(hwnd);
     Process p = Process.GetProcessById(pid);*/
-    //string appName = p.ProcessName;
+    // string appName = p.ProcessName;
     return name;
 }
 /// <summary>
