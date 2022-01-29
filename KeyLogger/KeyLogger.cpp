@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
+#include <time.h>
 #include <fstream>
 #include <vector>
 #include <iterator>
@@ -14,6 +15,8 @@
 #include <locale>
 #include <codecvt>
 #include <psapi.h>
+#include <chrono>
+#include <iostream>
 #include <shlwapi.h>
 #include <sstream>
 #include <iomanip>
@@ -146,9 +149,23 @@ void gotoxy(int x, int y) {
 /// </summary>
 /// <param name="x"></param>
 /// <param name="y"></param>
-void draw(std::map<std::string, int> apps)
+void drawtimeline(std::vector<std::pair<std::string, std::string>> timeline)
 {
-    system("CLS");
+    gotoxy(0, 20);
+    for (auto const& [key, val] : timeline)
+    {
+        std::cout << key << " ---> active at: " << val << std::endl;
+    }
+}
+/// <summary>
+/// 
+/// </summary>
+/// <param name="x"></param>
+/// <param name="y"></param>
+void draw(std::map<std::string, int> apps, std::vector<std::pair<std::string, std::string>> timeline)
+{
+    // system("CLS");
+    gotoxy(0, 0);
     for (auto const& [key, val] : apps)
     {
         // std::cout << key << " " << ((double) val) / 1000 << "s" << std::endl;
@@ -156,8 +173,9 @@ void draw(std::map<std::string, int> apps)
         std::stringstream stream;
         stream << std::fixed << std::setprecision(2) << sec;
         std::string s = stream.str();
-        std::cout << key << ": " << s << "s " << std::string(val/60000, char(178))  << std::endl;
+        std::cout << key << ": " << s << "s " << std::string(val/6000, char(178))  << std::endl;
     }
+    drawtimeline(timeline);
 }
 /// <summary>
 /// 
@@ -172,24 +190,28 @@ int main()
     std::string word = "";
     std::string activeWindow = "";
     std::map<std::string, int> apps;
+    std::vector<std::pair<std::string, std::string>> timeline;
     // infinite loop each 200 ms
-    std::thread windowThread = Looper::Thread(100, true, [&activeWindow, &apps]() {
+    std::thread windowThread = Looper::Thread(100, true, [&activeWindow, &apps, &timeline]() {
         // 
-        activeWindow = ProcessMonitor::OnWindowChange(activeWindow, [&apps](std::string w) {
-            // std::map<std::string, int>::iterator app = apps[w;
+        activeWindow = ProcessMonitor::OnWindowChange(activeWindow, [&timeline](std::string w) {
             // active window has been changed!!
-            draw(apps);
-            //std::cout << w << std::endl;
+            std::time_t now = std::time(nullptr);
+            char snow[26];
+            ctime_s(snow, sizeof snow, &now);
+            // using namespace std::chrono;
+            // auto local = zoned_time{ current_zone(), system_clock::now() };
+            timeline.push_back({ w, snow });
         });
         auto app = apps.find(activeWindow);
-        if (app == apps.end()) apps.insert({ activeWindow, 200 });
+        if (app == apps.end()) apps.insert({ activeWindow, 0 });
         else {
             int acc = app->second;
             // std::cout << acc << std::endl;
             apps.erase(activeWindow);
             apps.insert({ activeWindow, (acc + 200) });
         }
-        draw(apps);
+        draw(apps, timeline);
     });
     // 
     std::thread keyloggerThread = Looper::Thread(50, true, [&word]() {
@@ -201,17 +223,5 @@ int main()
     });
     windowThread.join();
     keyloggerThread.join();
-    //Looper::DoWhile(delay, monitor, [&word, &activeWindow]() {
-    //    // word assignation
-    //     word = KeyLogger::OnNewWord(word, [](char c) {}, [](std::string w) {
-    //        // new word appear!!
-    //        std::cout << w << std::endl;
-    //     });
-    //    // active window assignation
-    //    activeWindow = ProcessMonitor::OnWindowChange(activeWindow, [](std::string w) {
-    //        // active window has been changed!!
-    //        std::cout << w << std::endl;
-    //    });
-    //});
     return 0;
 }
